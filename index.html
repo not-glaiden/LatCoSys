@@ -1268,6 +1268,2548 @@ a:hover { color: #cc0000; }
   mix-blend-mode: difference;
 }
 
+
+</style>
+</head>
+<body>
+<!-- BOOT SCREEN -->
+<div id="boot-screen">
+  <div id="boot-log"></div>
+  <div id="boot-progress-wrap">
+    <div id="boot-progress-label">Инициализация системы...</div>
+    <div id="boot-progress-bar-outer">
+      <div id="boot-progress-bar-inner">
+        <span id="boot-progress-pct">0%</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+  </div>
+</div>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen">
+  <div class="login-window">
+    <div class="login-titlebar">
+      <div class="login-titlebar-icon">🔒</div>
+      Вход в систему — LATREIA Internal Network
+    </div>
+    <div class="login-body">
+      <div class="login-logo-row">
+        <img src="logo.png" alt="LATREIA" style="width:36px;height:36px;object-fit:contain;flex-shrink:0;">
+        <div>
+          <div class="login-corp-name">LATREIA CORPORATION</div>
+          <div class="login-corp-sub">Защищённая внутренняя сеть — АРХИВ-ДБ v4.1.2</div>
+        </div>
+      </div>
+
+      <div class="login-notice">
+        Данная система является собственностью LATREIA Corporation.<br>
+        Несанкционированный доступ запрещён (Акт 77-Р). Все действия протоколируются.
+      </div>
+
+      <div class="login-field-row">
+        <label for="login-user">Пользователь:</label>
+        <input type="text" id="login-user" value="LTR\a.operator" readonly style="color:#555;background:#eee">
+      </div>
+      <div class="login-field-row">
+        <label for="login-pass">Пароль:</label>
+        <input type="password" id="login-pass" placeholder="" autocomplete="off" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <div id="login-error">Неверный пароль. Попытка зарегистрирована.</div>
+
+      <div class="login-buttons">
+        <button class="login-btn" onclick="doLogin()">Войти</button>
+        <button class="login-btn" onclick="alert('Обратитесь к администратору системы (Отдел-7).')">Отмена</button>
+      </div>
+    </div>
+    <div class="login-statusbar">
+      <span>Узел: LTR-TRM-009</span>
+      <span>Объект-3 / Рига</span>
+      <span id="login-clock">—</span>
+    </div>
+  </div>
+</div>
+
+<div id="app" style="display:none">
+
+  <!-- TOP BAR -->
+  <div id="topbar">
+    <div id="topbar-left">
+      <span id="topbar-title">LATREIA CORPORATION — Защищённая внутренняя сеть</span>
+      <span class="sep">|</span>
+      <span>Система управления базой данных объектов v4.1</span>
+    </div>
+    <div id="topbar-right">
+      <span>Пользователь: <b style="color:#fff">LTR\a.operator</b></span>
+      <span>|</span>
+      <span>Уровень допуска: <b style="color:#ff8">4</b></span>
+      <span>|</span>
+<span id="clock">—</span>
+    </div>
+  </div>
+
+  <!-- HEADER -->
+  <div id="header">
+    <div id="header-inner">
+      <div id="logo-area">
+        <div id="corp-badge">
+          <img src="logo.png" alt="LATREIA" style="width:30px;height:30px;object-fit:contain;display:block;">
+        </div>
+        <div id="corp-title-block">
+          <div id="corp-name">LATREIA CORPORATION</div>
+          <div id="corp-sub">Отдел исследований и сдерживания — Внутренний архив</div>
+        </div>
+      </div>
+
+      <div id="header-meta">
+        <div>Система: <b>АРХИВ-ДБ v4.1.2</b></div>
+        <div>Узел: <b>LTR-TRM-009 / Объект-3 / Рига</b></div>
+        <div>Протокол: <b>BLACKSITE-ALPHA</b></div>
+      </div>
+
+      <div id="header-status">
+        <div class="hstat">
+          <span class="hstat-n" id="h-total">0</span>
+          <span>Записей</span>
+        </div>
+        <div class="hstat">
+          <span class="hstat-n" id="h-danger" style="color:#8b3300">0</span>
+          <span>Опасных</span>
+        </div>
+        <div class="hstat">
+          <span class="hstat-n" id="h-apo" style="color:#4a0066">0</span>
+          <span>Аполлион</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MENU BAR -->
+  <div id="menubar">
+    <button class="active" id="nav-db"  onclick="showView('list',event)">База данных</button>
+    <button id="nav-add" onclick="showView('add',event)">Новая запись</button>
+    <button onclick="showProtocol(event)">Протоколы</button>
+  <button onclick="openExport(event)" style="color:#484;">📤 Экспорт данных</button>
+    <button onclick="showProtocol(event)">Справка</button>
+
+    <div id="menubar-right">ГРИФ: СОВЕРШЕННО СЕКРЕТНО</div>
+  </div>
+
+  <!-- ADDRESS BAR -->
+  <div id="addressbar">
+    <label>Путь:</label>
+    <div id="addressbar-path" id="addr-path">ltrint://LTR-TRM-009/database/objects/</div>
+  </div>
+
+  <!-- LAYOUT -->
+  <div id="layout">
+
+    <!-- SIDEBAR -->
+    <div id="sidebar">
+
+      <div class="sb-group">
+        <div class="sb-group-title">Класс объекта</div>
+        <div class="sb-item active" onclick="filterClass('all',this)">
+          <div class="sb-badge sb-badge-all">ВСЕ</div>
+          <span class="sb-label">Все записи</span>
+          <span class="sb-count" id="cnt-all">0</span>
+        </div>
+        <div class="sb-item" onclick="filterClass('Б',this)">
+          <div class="sb-badge sb-badge-b">Б</div>
+          <span class="sb-label">Безопасный</span>
+          <span class="sb-count" id="cnt-b">0</span>
+        </div>
+        <div class="sb-item" onclick="filterClass('У',this)">
+          <div class="sb-badge sb-badge-u">У</div>
+          <span class="sb-label">Угрожающий</span>
+          <span class="sb-count" id="cnt-u">0</span>
+        </div>
+        <div class="sb-item" onclick="filterClass('О',this)">
+          <div class="sb-badge sb-badge-o">О</div>
+          <span class="sb-label">Опасный</span>
+          <span class="sb-count" id="cnt-o">0</span>
+        </div>
+        <div class="sb-item" onclick="filterClass('А',this)">
+          <div class="sb-badge sb-badge-a">А</div>
+          <span class="sb-label">Аполлион</span>
+          <span class="sb-count" id="cnt-a">0</span>
+        </div>
+      </div>
+
+      <div class="sb-group">
+        <div class="sb-group-title">Статистика</div>
+        <div class="sb-stat-grid">
+          <div class="sb-stat"><span class="sb-stat-n" id="sb-total">0</span><span class="sb-stat-l">Всего</span></div>
+          <div class="sb-stat"><span class="sb-stat-n" style="color:#155724" id="sb-b">0</span><span class="sb-stat-l">Безоп.</span></div>
+          <div class="sb-stat"><span class="sb-stat-n" style="color:#7a5a00" id="sb-u">0</span><span class="sb-stat-l">Угрож.</span></div>
+          <div class="sb-stat"><span class="sb-stat-n" style="color:#8b3300" id="sb-o">0</span><span class="sb-stat-l">Опасных</span></div>
+        </div>
+      </div>
+
+      <div class="sb-group">
+        <div class="sb-group-title">Пояснение классов</div>
+        <div style="padding:6px 8px;font-size:10px;line-height:1.6;color:#333;border-bottom:1px solid #bbb;">
+          <b style="color:#155724">Б — Безопасный:</b> Объект не представляет угрозы для персонала и окружающей среды при соблюдении стандартных мер.<br><br>
+          <b style="color:#7a5a00">У — Угрожающий:</b> Объект представляет потенциальную угрозу. Взаимодействие только с разрешения куратора.<br><br>
+          <b style="color:#8b3300">О — Опасный:</b> Объект представляет прямую угрозу жизни персонала. Контакт строго ограничен.<br><br>
+          <b style="color:#4a0066">А — Аполлион:</b> Угроза катастрофического масштаба. Санкция ИС обязательна.
+        </div>
+      </div>
+
+      <div class="sb-note">
+        <b>⚠ ПРЕДУПРЕЖДЕНИЕ</b>
+        Доступ к базе данных регистрируется. Несанкционированное раскрытие — Акт 77-Р. Попытки <span class="redact">████████</span> фиксируются Отделом-7.
+      </div>
+
+    </div>
+
+    <!-- MAIN -->
+    <div id="main">
+
+      <!-- TOOLBAR -->
+      <div id="toolbar">
+        <button class="tb-btn primary" onclick="showView('add',event)">+ Новая запись</button>
+        <div class="tb-sep"></div>
+        <button class="tb-btn" onclick="renderList()">Обновить</button>
+        <button class="tb-btn" onclick="showProtocol(event)">Печать</button>
+        <div id="search-row">
+          <label for="search-input">Поиск:</label>
+          <input type="text" id="search-input" placeholder="Номер, название, класс..." oninput="renderList()">
+          <button class="tb-btn" onclick="renderList()">Найти</button>
+          <button class="tb-btn" onclick="clearSearch()">Сбросить</button>
+        </div>
+      </div>
+
+      <!-- CONTENT -->
+      <div id="content">
+
+        <!-- LIST VIEW -->
+        <div id="view-list">
+          <div id="results-bar">
+            <span>Найдено записей: <b id="entry-count">0</b></span>
+            <span>Сортировка: дата регистрации (убывание)</span>
+          </div>
+          <div id="list-container"></div>
+        </div>
+
+        <!-- DETAIL VIEW -->
+        <div id="view-detail">
+          <div class="detail-top" id="detail-top-bar">
+            <button class="tb-btn" onclick="showView('list',event)">← Назад к списку</button>
+          </div>
+          <div id="detail-content"></div>
+        </div>
+
+        <!-- EDIT VIEW -->
+        <div id="view-edit">
+          <div class="detail-top">
+            <button class="tb-btn" onclick="cancelEdit()">← Отмена</button>
+          </div>
+          <div class="form-outer">
+            <div class="form-title-band">
+              Редактирование записи: <span id="edit-id-label"></span>
+              <small>ФОРМА ЛТР-ДБ-002 | ВНУТРЕННЕЕ ИСПОЛЬЗОВАНИЕ</small>
+            </div>
+            <div class="form-body">
+              <div class="form-section-title">Раздел 1 — Идентификация объекта</div>
+              <div class="frow triple">
+                <div class="fgroup">
+                  <label class="flabel">Рег. номер</label>
+                  <input class="finput" id="e-id" readonly style="background:#eee;color:#555;">
+                </div>
+                <div class="fgroup">
+                  <label class="flabel">Класс объекта</label>
+                  <select class="fselect" id="e-class">
+                    <option value="Б">Б — Безопасный</option>
+                    <option value="У">У — Угрожающий</option>
+                    <option value="О">О — Опасный</option>
+                    <option value="А">А — Аполлион</option>
+                  </select>
+                </div>
+                <div class="fgroup">
+                  <label class="flabel">Статус сдерживания</label>
+                  <select class="fselect" id="e-status">
+                    <option value="Сдержан">Сдержан</option>
+                    <option value="Активен">Активен</option>
+                    <option value="Критический">Критический</option>
+                    <option value="Неизвестен">Неизвестен</option>
+                    <option value="Ликвидирован">Ликвидирован</option>
+                  </select>
+                </div>
+              </div>
+              <div class="frow">
+                <div class="fgroup">
+                  <label class="flabel">Название / Кодовое обозначение <span class="req">*</span></label>
+                  <input class="finput" id="e-title">
+                </div>
+                <div class="fgroup">
+                  <label class="flabel">Исследовательское подразделение</label>
+                  <input class="finput" id="e-division">
+                </div>
+              </div>
+              <div class="frow">
+                <div class="fgroup">
+                  <label class="flabel">Место обнаружения</label>
+                  <input class="finput" id="e-location">
+                </div>
+                <div class="fgroup">
+                  <label class="flabel">Ответственный исследователь</label>
+                  <input class="finput" id="e-researcher">
+                </div>
+              </div>
+              <div class="frow">
+                <div class="fgroup">
+                  <label class="flabel">Дата регистрации <span class="req">*</span></label>
+                  <input class="finput" id="e-date" placeholder="дд.мм.гггг">
+                </div>
+                <div class="fgroup">
+                  <label class="flabel">Дата редакции <span class="req">*</span></label>
+                  <input class="finput" id="e-lastedited" placeholder="дд.мм.гггг">
+                </div>
+              </div>
+              <div class="form-section-title">Раздел 2 — Процедуры сдерживания</div>
+              <div class="frow single">
+                <div class="fgroup">
+                  <label class="flabel">Специальные процедуры сдерживания <span class="req">*</span></label>
+                  <textarea class="ftextarea" id="e-containment" style="min-height:90px"></textarea>
+                </div>
+              </div>
+              <div class="form-section-title">Раздел 3 — Описание объекта</div>
+              <div class="frow single">
+                <div class="fgroup">
+                  <label class="flabel">Описание <span class="req">*</span></label>
+                  <textarea class="ftextarea" id="e-description" style="min-height:110px"></textarea>
+                </div>
+              </div>
+              <div class="form-section-title">Раздел 4 — Дополнительные материалы</div>
+              <div class="frow single">
+                <div class="fgroup">
+                  <label class="flabel">Журнал инцидентов / Аддендум</label>
+                  <textarea class="ftextarea" id="e-addendum" style="min-height:80px"></textarea>
+                </div>
+              </div>
+              <div class="form-section-title">Раздел 5 — Прикреплённые материалы</div>
+              <div class="frow single">
+                <div class="fgroup">
+                  <label class="flabel">Файлы изображений / видео (имена через запятую)</label>
+                  <input class="finput" id="e-media" placeholder="photo.jpg, diagram.png, footage.mp4">
+                  <div style="font-size:10px;color:#555;margin-top:3px;">
+                    Файлы должны находиться в папке <code style="background:#e8e8e8;padding:0 3px;">assets/</code> репозитория.
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="form-footer">
+              <button class="btn-save-version tb-btn primary" onclick="saveEdit(true)">💾 Сохранить + архивировать версию</button>
+              <button class="tb-btn" onclick="saveEdit(false)">Сохранить без архива</button>
+              <button class="tb-btn" onclick="cancelEdit()">Отмена</button>
+              <span class="form-footer-note">«Архивировать» — сохранит старую версию для просмотра истории</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ADD VIEW -->
+        <div id="view-add">
+          <div class="detail-top">
+            <button class="tb-btn" onclick="showView('list',event)">← Назад</button>
+          </div>
+          <div class="form-outer">
+            <div class="form-title-band">
+              Создание новой записи объекта
+              <small>ФОРМА ЛТР-ДБ-001 | ДЛЯ ВНУТРЕННЕГО ИСПОЛЬЗОВАНИЯ</small>
+            </div>
+            <div class="form-body">
+
+              <div class="form-section-title">Раздел 1 — Идентификация объекта</div>
+              <div class="frow triple">
+                <div class="fgroup">
+                  <label class="flabel">Рег. номер (или авто)</label>
+                  <input class="finput" id="f-id" placeholder="">
+                </div>
+                <div class="fgroup">
+                  <label class="flabel">Класс объекта <span class="req">*</span></label>
+                  <select class="fselect" id="f-class">
+                    <option value="Б">Б — Безопасный</option>
+                    <option value="У">У — Угрожающий</option>
+                    <option value="О">О — Опасный</option>
+                    <option value="А">А — Аполлион</option>
+                  </select>
+                </div>
+                <div class="fgroup">
+                  <label class="flabel">Статус сдерживания</label>
+                  <select class="fselect" id="f-status">
+                    <option value="Сдержан">Сдержан</option>
+                    <option value="Активен">Активен</option>
+                    <option value="Критический">Критический</option>
+                    <option value="Неизвестен">Неизвестен</option>
+                    <option value="Ликвидирован">Ликвидирован</option>
+                  </select>
+                </div>
+              </div>
+              <div class="frow">
+                <div class="fgroup">
+                  <label class="flabel">Название / Кодовое обозначение <span class="req">*</span></label>
+                  <input class="finput" id="f-title" placeholder="">
+                </div>
+                <div class="fgroup">
+                  <label class="flabel">Исследовательское подразделение</label>
+                  <input class="finput" id="f-division" placeholder="">
+                </div>
+              </div>
+              <div class="frow">
+                <div class="fgroup">
+                  <label class="flabel">Место обнаружения</label>
+                  <input class="finput" id="f-location" placeholder="">
+                </div>
+                <div class="fgroup">
+                  <label class="flabel">Ответственный исследователь</label>
+                  <input class="finput" id="f-researcher" placeholder="">
+                </div>
+              </div>
+              <div class="frow">
+                <div class="fgroup">
+                  <label class="flabel">Дата регистрации <span class="req">*</span></label>
+                  <input class="finput" id="f-date" placeholder="дд.мм.гггг">
+                </div>
+                <div class="fgroup"></div>
+              </div>
+
+              <div class="form-section-title">Раздел 2 — Процедуры сдерживания</div>
+              <div class="frow single">
+                <div class="fgroup">
+                  <label class="flabel">Специальные процедуры сдерживания <span class="req">*</span></label>
+                  <textarea class="ftextarea" id="f-containment" style="min-height:90px" placeholder=""></textarea>
+                </div>
+              </div>
+
+              <div class="form-section-title">Раздел 3 — Описание объекта</div>
+              <div class="frow single">
+                <div class="fgroup">
+                  <label class="flabel">Описание <span class="req">*</span></label>
+                  <textarea class="ftextarea" id="f-description" style="min-height:110px" placeholder=""></textarea>
+                </div>
+              </div>
+
+              <div class="form-section-title">Раздел 4 — Дополнительные материалы</div>
+              <div class="frow single">
+                <div class="fgroup">
+                  <label class="flabel">Журнал инцидентов / Аддендум (необязательно)</label>
+                  <textarea class="ftextarea" id="f-addendum" style="min-height:80px" placeholder=""></textarea>
+                </div>
+              </div>
+
+              <div class="form-section-title">Раздел 5 — Прикреплённые материалы</div>
+              <div class="frow single">
+                <div class="fgroup">
+                  <label class="flabel">Файлы изображений / видео (имена через запятую)</label>
+                  <input class="finput" id="f-media" placeholder="photo.jpg, diagram.png, footage.mp4">
+                  <div style="font-size:10px;color:#555;margin-top:3px;">
+                    Поместите файлы в папку <code style="background:#e8e8e8;padding:0 3px;">assets/</code> репозитория. 
+                    Укажите только имена файлов. Поддерживаются: jpg, png, gif, webp, mp4, webm.
+                  </div>
+                </div>
+              </div>
+
+            </div>
+            <div class="form-footer">
+              <button class="tb-btn primary" onclick="submitArticle()">Подать отчёт</button>
+              <button class="tb-btn" onclick="showView('list',event)">Отмена</button>
+              <span class="form-footer-note">* — обязательные поля &nbsp;|&nbsp; Данные хранятся локально в браузере</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- VERSION VIEW (full page) -->
+        <div id="view-version" style="display:none;">
+          <div class="detail-top">
+            <button class="tb-btn" id="version-back-btn">← Назад к записи</button>
+          </div>
+          <div id="version-page-content"></div>
+        </div>
+
+      </div><!-- /content -->
+    </div><!-- /main -->
+  </div><!-- /layout -->
+
+  <!-- STATUSBAR -->
+  <div id="statusbar">
+    <span class="sb-seg" id="status-msg">Готово</span>
+    <span class="sb-seg">Узел: LTR-TRM-009</span>
+    <span class="sb-seg">Протокол: BLACKSITE-ALPHA</span>
+    <span class="sb-seg">Сессия активна</span>
+    <span class="sb-seg">Доступ протоколируется</span>
+  </div>
+
+</div><!-- /app -->
+
+<div class="toast" id="toast"></div>
+
+<!-- DELETE PASSWORD MODAL -->
+<div class="modal-overlay" id="modal-delete">
+  <div class="modal-window">
+    <div class="modal-titlebar">⚠ Подтверждение удаления</div>
+    <div class="modal-body">
+      <p>Удаление записи необратимо и будет зарегистрировано в журнале.<br>Введите пароль администратора для подтверждения.</p>
+      <div class="modal-field-row">
+        <label>Пароль:</label>
+        <input type="password" id="del-pass" autocomplete="off" onkeydown="if(event.key==='Enter')confirmDelete()">
+      </div>
+      <div class="modal-error" id="del-error">Неверный пароль.</div>
+    </div>
+    <div class="modal-buttons">
+      <button class="login-btn" onclick="confirmDelete()">Удалить</button>
+      <button class="login-btn" onclick="closeModal('modal-delete')">Отмена</button>
+    </div>
+  </div>
+</div>
+
+<!-- VERSION VIEWER MODAL removed - now a full page view -->
+
+<!-- EXPORT MODAL -->
+<div class="modal-overlay" id="modal-export">
+  <div class="modal-window" style="max-width:560px;width:96vw;">
+    <div class="modal-titlebar">📤 Export data.json</div>
+    <div class="modal-body" style="padding:12px 14px 6px;">
+      <p style="font-size:11px;margin-bottom:8px;color:#333;">
+        Copy the text below and paste it into <b>data.json</b> in your repository root, then commit.
+      </p>
+      <textarea id="export-textarea" readonly style="width:100%;height:260px;font-family:'Courier New',monospace;font-size:10px;border:1px inset #888;background:#f8f8f8;padding:6px;resize:none;color:#000;"></textarea>
+      <div id="export-copied" style="display:none;font-size:10px;color:#155724;margin-top:4px;">✓ Copied to clipboard.</div>
+    </div>
+    <div class="modal-buttons">
+      <button class="login-btn" onclick="copyExport()">Copy to clipboard</button>
+      <button class="login-btn" onclick="downloadExport()">Download data.json</button>
+      <button class="login-btn" onclick="closeModal('modal-export')">Close</button>
+    </div>
+  </div>
+</div>
+<div id="lightbox" onclick="closeLightbox()"><img id="lightbox-img" src="" alt=""></div>
+
+<script>
+// ══════════════════════════════════════════════
+// STORAGE — localStorage + data.json (read on boot)
+// ══════════════════════════════════════════════
+const STORE      = 'latreia_v3';
+let activeFilter = 'all';
+let currentId    = null;
+
+const get       = () => { try { return JSON.parse(localStorage.getItem(STORE)) || []; } catch { return []; } };
+const saveLocal = d  => localStorage.setItem(STORE, JSON.stringify(d));
+function save(data) { saveLocal(data); }
+
+// Read data.json on boot (plain fetch, no auth)
+async function fetchFromFile() {
+  try {
+    const r = await fetch('data.json?_=' + Date.now());
+    if (!r.ok) return null;
+    const d = await r.json();
+    return Array.isArray(d) ? d : null;
+  } catch { return null; }
+}
+
+function genId() {
+  const articles = get();
+  const existing = articles.map(a => {
+    const m = a.id.match(/^PO-(\d+)$/);
+    return m ? parseInt(m[1]) : 0;
+  });
+  const max = existing.length ? Math.max(...existing) : 0;
+  const next = String(max + 1).padStart(3, '0');
+  return `PO-${next}`;
+}
+
+function fmtDate(val) {
+  if (!val) return '—';
+  // If it's already a formatted string like dd.mm.yyyy, return as-is
+  if (/^\d{2}\.\d{2}\.\d{4}/.test(val)) return val;
+  // Otherwise try to parse ISO
+  try {
+    return new Date(val).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  } catch { return val; }
+}
+
+const CLS = {
+  'Б': { badge:'cls-b', dcs:'dcs-b', name:'Безопасный',    pill:'st-contained', pillDef:'Сдержан' },
+  'У': { badge:'cls-u', dcs:'dcs-u', name:'Угрожающий',    pill:'st-active',    pillDef:'Активен' },
+  'О': { badge:'cls-o', dcs:'dcs-o', name:'Опасный',       pill:'st-critical',  pillDef:'Критический' },
+  'А': { badge:'cls-a', dcs:'dcs-a', name:'Аполлион',      pill:'st-unknown',   pillDef:'Неизвестен' },
+};
+
+const SPILL = {
+  'Сдержан':     'st-contained',
+  'Активен':     'st-active',
+  'Критический': 'st-critical',
+  'Неизвестен':  'st-unknown',
+  'Ликвидирован':'st-liquidated',
+};
+
+// Clock
+function tick() {
+  const s = new Date().toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const el = document.getElementById('clock');
+  if (el) el.textContent = s;
+}
+setInterval(tick, 1000); tick();
+
+// Views
+function showView(name, e) {
+  if (e) e.preventDefault();
+  ['list','detail','add','edit','version'].forEach(v => {
+    const el = document.getElementById('view-' + v);
+    if (el) el.style.display = (v === name) ? 'block' : 'none';
+  });
+
+  document.getElementById('nav-db').classList.toggle('active',  name === 'list');
+  document.getElementById('nav-add').classList.toggle('active', name === 'add');
+
+  const addrMap = {
+    list:   'ltrint://LTR-TRM-009/database/objects/',
+    detail: 'ltrint://LTR-TRM-009/database/objects/' + (currentId || ''),
+    add:    'ltrint://LTR-TRM-009/database/objects/new',
+    edit:   'ltrint://LTR-TRM-009/database/objects/' + (currentId || '') + '/edit',
+  };
+  document.getElementById('addressbar-path').textContent = addrMap[name] || '';
+
+  const msgs = { list: 'Загрузка завершена', detail: 'Открыта запись объекта', add: 'Форма создания новой записи', edit: 'Редактирование записи' };
+  document.getElementById('status-msg').textContent = msgs[name] || 'Готово';
+
+  if (name === 'list') renderList();
+}
+
+function showProtocol(e) {
+  if (e) e.preventDefault();
+  setStatus('Доступ запрещён — требуется уровень допуска 5');
+  toast('Доступ запрещён. Требуется уровень допуска 5.');
+}
+
+function setStatus(msg) {
+  document.getElementById('status-msg').textContent = msg;
+}
+
+// Stats
+function updateStats(articles) {
+  const c = { 'Б': 0, 'У': 0, 'О': 0, 'А': 0 };
+  articles.forEach(a => { if (c[a.cls] !== undefined) c[a.cls]++; });
+  const t = articles.length;
+  document.getElementById('sb-total').textContent = t;
+  document.getElementById('sb-b').textContent = c['Б'];
+  document.getElementById('sb-u').textContent = c['У'];
+  document.getElementById('sb-o').textContent = c['О'];
+  document.getElementById('h-total').textContent  = t;
+  document.getElementById('h-danger').textContent = c['О'];
+  document.getElementById('h-apo').textContent    = c['А'];
+  document.getElementById('cnt-all').textContent  = t;
+  document.getElementById('cnt-b').textContent    = c['Б'];
+  document.getElementById('cnt-u').textContent    = c['У'];
+  document.getElementById('cnt-o').textContent    = c['О'];
+  document.getElementById('cnt-a').textContent    = c['А'];
+}
+
+// Render list
+function renderList() {
+  const articles = get();
+  const q = (document.getElementById('search-input')?.value || '').toLowerCase().trim();
+  updateStats(articles);
+
+  let list = articles.filter(a => {
+    const mc = activeFilter === 'all' || a.cls === activeFilter;
+    const ms = !q || a.id.toLowerCase().includes(q) || a.title.toLowerCase().includes(q) ||
+               a.cls.toLowerCase().includes(q) || (a.division || '').toLowerCase().includes(q);
+    return mc && ms;
+  }).sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  document.getElementById('entry-count').textContent = list.length;
+  const container = document.getElementById('list-container');
+
+  if (!list.length) {
+    container.innerHTML = `<div id="empty-state">Записи не найдены. Используйте кнопку «Новая запись» для создания или измените параметры поиска.</div>`;
+    return;
+  }
+
+  container.innerHTML = `
+    <table id="data-table">
+      <thead>
+        <tr>
+          <th>№ регистрации</th>
+          <th>Кл.</th>
+          <th>Название / Кодовое обозначение</th>
+          <th>Подразделение</th>
+          <th>Статус</th>
+          <th>Дата рег.</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${list.map(a => {
+          const cm = CLS[a.cls] || CLS['Б'];
+          const sp = SPILL[a.status] || cm.pill;
+          return `<tr onclick="openArticle('${esc(a.id)}')">
+            <td style="font-family:'Courier New',monospace;font-size:10px;white-space:nowrap">${esc(a.id)}</td>
+            <td style="text-align:center"><span class="cls-badge ${cm.badge}">${esc(a.cls)}</span></td>
+            <td style="font-weight:bold">${esc(a.title)}</td>
+            <td style="font-size:10px;white-space:nowrap">${esc(a.division || '—')}</td>
+            <td><span class="status-tag ${sp}">${esc(a.status || cm.pillDef)}</span></td>
+            <td style="font-family:'Courier New',monospace;font-size:10px;white-space:nowrap">${fmtDate(a.date)}</td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>`;
+}
+
+function filterClass(cls, el) {
+  activeFilter = cls;
+  document.querySelectorAll('.sb-item').forEach(i => i.classList.remove('active'));
+  el.classList.add('active');
+  renderList();
+}
+
+function clearSearch() {
+  document.getElementById('search-input').value = '';
+  renderList();
+}
+
+// Open article
+function openArticle(id) {
+  const a = get().find(x => x.id === id);
+  if (!a) return;
+  currentId = id;
+  const cm = CLS[a.cls] || CLS['Б'];
+  const sp = SPILL[a.status] || cm.pill;
+
+  document.getElementById('detail-content').innerHTML = `
+<div class="doc-outer">
+  <div class="doc-action-bar">
+    <button class="tb-btn" onclick="openEditView()">✎ Редактировать</button>
+    <button class="tb-btn danger" onclick="promptDelete()">✖ Удалить запись</button>
+  </div>
+  <div class="doc-grifband">СОВЕРШЕННО СЕКРЕТНО — ТОЛЬКО ДЛЯ ВНУТРЕННЕГО ИСПОЛЬЗОВАНИЯ</div>
+  <div class="doc-header-band">
+    <div class="doc-header-left">
+      <div class="doc-org">LATREIA CORPORATION / Отдел исследований и сдерживания / Рег. № ${esc(a.id)}</div>
+      <div class="doc-title">${esc(a.title)}</div>
+      <div class="doc-subtitle">Класс объекта: ${esc(a.cls)} — ${esc(cm.name)} &nbsp;|&nbsp; Статус: ${esc(a.status || cm.pillDef)}</div>
+    </div>
+    <div class="doc-header-right">
+      <div class="doc-class-stamp ${cm.dcs}">${esc(a.cls)}</div>
+      <div class="doc-class-label">Класс<br>${esc(cm.name)}</div>
+    </div>
+  </div>
+
+  <table class="doc-meta">
+    <tr>
+      <td style="width:16%"><span class="ml">Рег. номер</span><span class="mv">${esc(a.id)}</span></td>
+      <td style="width:16%"><span class="ml">Класс</span><span class="mv">${esc(a.cls)} — ${esc(cm.name)}</span></td>
+      <td style="width:16%"><span class="ml">Подразделение</span><span class="mv">${esc(a.division || 'Не назначено')}</span></td>
+      <td style="width:16%"><span class="ml">Место обнаружения</span><span class="mv">${esc(a.location || 'ЗАСЕКРЕЧЕНО')}</span></td>
+      <td style="width:16%"><span class="ml">Исследователь</span><span class="mv">${esc(a.researcher || '—')}</span></td>
+      <td style="width:20%"><span class="ml">Дата регистрации</span><span class="mv">${fmtDate(a.date)}</span></td>
+    </tr>
+    <tr>
+      <td colspan="2"><span class="ml">Статус сдерживания</span><span class="mv"><span class="status-tag ${sp}">${esc(a.status || cm.pillDef)}</span></span></td>
+      <td colspan="4"><span class="ml">Примечание</span><span class="mv" style="color:#555;font-size:10px">Доступ к данному файлу протоколируется. Несанкционированное копирование запрещено (Акт 77-Р).</span></td>
+    </tr>
+    ${a.lastEdited ? `<tr><td colspan="2"><span class="ml">Последнее редактирование</span><span class="mv" style="color:#884400;">${fmtDateTime(a.lastEdited)}</span></td><td colspan="4"><span class="ml">Версий в архиве</span><span class="mv">${(a.versions||[]).length}</span></td></tr>` : ''}
+  </table>
+
+  <div>
+    <div class="doc-section">
+      <div class="doc-sec-head"><span class="doc-sec-num">§ 1.</span> Специальные процедуры сдерживания</div>
+      <div class="doc-sec-body containment">${esc(a.containment) || '[ДАННЫЕ ОТСУТСТВУЮТ]'}</div>
+    </div>
+    <div class="doc-section">
+      <div class="doc-sec-head"><span class="doc-sec-num">§ 2.</span> Описание</div>
+      <div class="doc-sec-body">${esc(a.description) || '[ДАННЫЕ ОТСУТСТВУЮТ]'}</div>
+    </div>
+    ${a.addendum ? `
+    <div class="doc-section">
+      <div class="doc-sec-head"><span class="doc-sec-num">§ 3.</span> Журнал инцидентов / Аддендум</div>
+      <div class="doc-sec-body">${esc(a.addendum)}</div>
+    </div>` : ''}
+    ${a.media && a.media.length ? `
+    <div class="doc-section">
+      <div class="doc-sec-head"><span class="doc-sec-num">§ ${a.addendum ? 4 : 3}.</span> Прикреплённые материалы (${a.media.length} файл(ов))</div>
+      <div class="doc-img-grid">
+        ${a.media.map(fname => renderMediaItem(fname)).join('')}
+      </div>
+    </div>` : ''}
+  </div>
+  ${a.versions && a.versions.length ? `
+  <div class="version-history">
+    <div class="version-history-head" onclick="toggleVersionList(this)">
+      📁 История изменений — ${a.versions.length} версий(я) &nbsp;<span>▼</span>
+    </div>
+    <div class="version-list">
+      ${a.versions.slice().reverse().map((v, i) => `
+      <div class="version-row">
+        <div class="version-num">v${a.versions.length - i}</div>
+        <div class="version-meta">
+          <b>Архивировано:</b> ${fmtDateTime(v.archivedAt)}<br>
+          Название: ${esc(v.title)} &nbsp;|&nbsp; Класс: ${esc(v.cls)} &nbsp;|&nbsp; Статус: ${esc(v.status || '—')}
+        </div>
+        <button class="version-btn" onclick="viewVersion(${a.versions.length - 1 - i}, '${esc(a.id)}')">Просмотр</button>
+      </div>`).join('')}
+    </div>
+  </div>` : ''}
+</div>`;
+
+  // Switch to detail view
+  ['list','add','edit','version'].forEach(v => {
+    const el = document.getElementById('view-' + v);
+    if (el) el.style.display = 'none';
+  });
+  document.getElementById('view-detail').style.display = 'block';
+
+  const addrEl = document.getElementById('addressbar-path');
+  if (addrEl) addrEl.textContent = 'ltrint://LTR-TRM-009/database/objects/' + a.id;
+  setStatus(`Открыта запись: ${a.id}`);
+
+  document.getElementById('nav-db').classList.remove('active');
+  document.getElementById('nav-add').classList.remove('active');
+}
+
+// ── DELETE WITH PASSWORD ──
+function promptDelete() {
+  if (!currentId) return;
+  const passEl  = document.getElementById('del-pass');
+  const errEl   = document.getElementById('del-error');
+  const overlay = document.getElementById('modal-delete');
+  passEl.value = '';
+  errEl.style.display = 'none';
+  errEl.textContent = 'Неверный пароль.';
+  overlay.classList.add('open');
+  passEl.focus();
+}
+
+function confirmDelete() {
+  const pass = document.getElementById('del-pass').value;
+  const errEl = document.getElementById('del-error');
+  if (pass !== LOGIN_PASS) {
+    errEl.style.display = 'block';
+    document.getElementById('del-pass').value = '';
+    document.getElementById('del-pass').focus();
+    return;
+  }
+  closeModal('modal-delete');
+  save(get().filter(a => a.id !== currentId));
+  currentId = null;
+  showView('list');
+  toast('Запись удалена. Действие зарегистрировано в журнале.');
+  setStatus('Запись удалена');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+// ── EDIT ──
+
+
+function openEditView() {
+  const a = get().find(x => x.id === currentId);
+  if (!a) return;
+
+  document.getElementById('edit-id-label').textContent = a.id;
+  document.getElementById('e-id').value         = a.id;
+  document.getElementById('e-class').value      = a.cls;
+  document.getElementById('e-status').value     = a.status || '';
+  document.getElementById('e-title').value      = a.title || '';
+  document.getElementById('e-division').value   = a.division || '';
+  document.getElementById('e-location').value   = a.location || '';
+  document.getElementById('e-researcher').value = a.researcher || '';
+  document.getElementById('e-containment').value= a.containment || '';
+  document.getElementById('e-description').value= a.description || '';
+  document.getElementById('e-addendum').value   = a.addendum || '';
+  document.getElementById('e-date').value       = a.date || '';
+  document.getElementById('e-media').value     = (a.media || []).join(', ');
+  document.getElementById('e-lastedited').value = a.lastEdited || '';
+  document.getElementById('e-img-preview').innerHTML = '';
+  document.getElementById('e-images').value = '';
+
+  const inp = document.getElementById('e-images');
+  inp.onchange = () => {
+    document.getElementById('e-img-preview').innerHTML = '';
+    Array.from(inp.files).forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        editPendingImages.push({ name: file.name, dataUrl: ev.target.result });
+        const wrap = document.createElement('div');
+        wrap.style.position = 'relative';
+        wrap.style.display = 'inline-block';
+        const img = document.createElement('img');
+        img.src = ev.target.result;
+        img.className = 'img-thumb';
+        wrap.appendChild(img);
+        document.getElementById('e-img-preview').appendChild(wrap);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  ['list','add','detail','version'].forEach(v => {
+    const el = document.getElementById('view-' + v);
+    if (el) el.style.display = 'none';
+  });
+  document.getElementById('view-edit').style.display = 'block';
+
+  const addrEl = document.getElementById('addressbar-path');
+  if (addrEl) addrEl.textContent = 'ltrint://LTR-TRM-009/database/objects/' + a.id + '/edit';
+  setStatus('Редактирование записи: ' + a.id);
+}
+
+function cancelEdit() {
+  openArticle(currentId);
+}
+
+function saveEdit(archiveOldVersion) {
+  const title       = document.getElementById('e-title').value.trim();
+  const cls         = document.getElementById('e-class').value;
+  const status      = document.getElementById('e-status').value;
+  const division    = document.getElementById('e-division').value.trim();
+  const location    = document.getElementById('e-location').value.trim();
+  const researcher  = document.getElementById('e-researcher').value.trim();
+  const containment = document.getElementById('e-containment').value.trim();
+  const description = document.getElementById('e-description').value.trim();
+  const addendum    = document.getElementById('e-addendum').value.trim();
+  const mediaRaw    = document.getElementById('e-media').value.trim();
+  const media       = mediaRaw ? mediaRaw.split(',').map(s => s.trim()).filter(Boolean) : (old.media || []);
+  const dateVal     = document.getElementById('e-date').value.trim();
+  const lastEdited  = document.getElementById('e-lastedited').value.trim();
+
+  if (!title)       { toast('Ошибка: поле «Название» обязательно.'); return; }
+  if (!description) { toast('Ошибка: поле «Описание» обязательно.'); return; }
+  if (!containment) { toast('Ошибка: поле «Процедуры сдерживания» обязательно.'); return; }
+  if (!dateVal)     { toast('Ошибка: поле «Дата регистрации» обязательно.'); return; }
+  if (!lastEdited)  { toast('Ошибка: поле «Дата редакции» обязательно.'); return; }
+
+  const articles = get();
+  const idx = articles.findIndex(a => a.id === currentId);
+  if (idx === -1) { toast('Ошибка: запись не найдена.'); return; }
+
+  const old = articles[idx];
+
+  if (archiveOldVersion) {
+    const snapshot = {
+      title:       old.title,
+      cls:         old.cls,
+      status:      old.status,
+      division:    old.division,
+      location:    old.location,
+      researcher:  old.researcher,
+      containment: old.containment,
+      description: old.description,
+      addendum:    old.addendum,
+      date:        old.date,
+      lastEdited:  old.lastEdited,
+      archivedAt:  lastEdited,
+    };
+    if (!old.versions) old.versions = [];
+    old.versions.push(snapshot);
+  }
+
+  articles[idx] = {
+    ...old,
+    title, cls, status, division, location, researcher, containment, description, addendum,
+    media,
+    date: dateVal,
+    lastEdited: lastEdited,
+  };
+
+  save(articles);
+  toast(`Запись ${currentId} обновлена.`);
+  openArticle(currentId);
+}
+
+// ── VERSION HISTORY ──
+function toggleVersionList(headEl) {
+  const list = headEl.nextElementSibling;
+  const arrow = headEl.querySelector('span');
+  list.classList.toggle('open');
+  arrow.textContent = list.classList.contains('open') ? '▲' : '▼';
+}
+
+function viewVersion(idx, articleId) {
+  const a = get().find(x => x.id === articleId);
+  if (!a || !a.versions || !a.versions[idx]) return;
+  const v = a.versions[idx];
+  const cm = CLS[v.cls] || CLS['Б'];
+  const sp = SPILL[v.status] || cm.pill;
+  const vNum = idx + 1;
+
+  document.getElementById('version-page-content').innerHTML = `
+<div class="doc-outer">
+  <div class="doc-action-bar" style="background:#e8e0cc;border-bottom:1px solid #aaa;">
+    <span style="font-size:11px;color:#555;">📋 Архивная версия v${vNum} — запись ${esc(articleId)} — сохранена: ${esc(v.archivedAt||'—')}</span>
+  </div>
+  <div class="doc-grifband" style="background:#555;">АРХИВНАЯ ВЕРСИЯ — ТОЛЬКО ДЛЯ ПРОСМОТРА — ТОЛЬКО ДЛЯ ВНУТРЕННЕГО ИСПОЛЬЗОВАНИЯ</div>
+  <div class="doc-header-band">
+    <div class="doc-header-left">
+      <div class="doc-org">LATREIA CORPORATION / Архив / Рег. № ${esc(articleId)} / Версия ${vNum}</div>
+      <div class="doc-title">${esc(v.title)}</div>
+      <div class="doc-subtitle">Класс объекта: ${esc(v.cls)} — ${esc(cm.name)} &nbsp;|&nbsp; Статус: ${esc(v.status||'—')}</div>
+    </div>
+    <div class="doc-header-right">
+      <div class="doc-class-stamp ${cm.dcs}">${esc(v.cls)}</div>
+      <div class="doc-class-label">Класс<br>${esc(cm.name)}</div>
+    </div>
+  </div>
+  <table class="doc-meta">
+    <tr>
+      <td style="width:16%"><span class="ml">Рег. номер</span><span class="mv">${esc(articleId)}</span></td>
+      <td style="width:16%"><span class="ml">Класс</span><span class="mv">${esc(v.cls)} — ${esc(cm.name)}</span></td>
+      <td style="width:16%"><span class="ml">Подразделение</span><span class="mv">${esc(v.division||'—')}</span></td>
+      <td style="width:16%"><span class="ml">Место обнаружения</span><span class="mv">${esc(v.location||'—')}</span></td>
+      <td style="width:16%"><span class="ml">Исследователь</span><span class="mv">${esc(v.researcher||'—')}</span></td>
+      <td style="width:20%"><span class="ml">Дата регистрации</span><span class="mv">${esc(v.date||'—')}</span></td>
+    </tr>
+    <tr>
+      <td colspan="2"><span class="ml">Статус сдерживания</span><span class="mv"><span class="status-tag ${sp}">${esc(v.status||'—')}</span></span></td>
+      <td colspan="2"><span class="ml">Дата редакции (версии)</span><span class="mv">${esc(v.lastEdited||'—')}</span></td>
+      <td colspan="2"><span class="ml">Дата архивирования</span><span class="mv" style="color:#884400;">${esc(v.archivedAt||'—')}</span></td>
+    </tr>
+  </table>
+  <div>
+    <div class="doc-section">
+      <div class="doc-sec-head"><span class="doc-sec-num">§ 1.</span> Специальные процедуры сдерживания</div>
+      <div class="doc-sec-body containment">${esc(v.containment||'[ДАННЫЕ ОТСУТСТВУЮТ]')}</div>
+    </div>
+    <div class="doc-section">
+      <div class="doc-sec-head"><span class="doc-sec-num">§ 2.</span> Описание</div>
+      <div class="doc-sec-body">${esc(v.description||'[ДАННЫЕ ОТСУТСТВУЮТ]')}</div>
+    </div>
+    ${v.addendum ? `
+    <div class="doc-section">
+      <div class="doc-sec-head"><span class="doc-sec-num">§ 3.</span> Журнал инцидентов / Аддендум</div>
+      <div class="doc-sec-body">${esc(v.addendum)}</div>
+    </div>` : ''}
+    ${v.images && v.images.length ? `
+    <div class="doc-section">
+      <div class="doc-sec-head"><span class="doc-sec-num">§ ${v.addendum ? 4 : 3}.</span> Прикреплённые материалы (${v.images.length} файл(ов))</div>
+      <div class="doc-img-grid">
+        ${v.images.map(img => `
+          <div class="doc-img-item">
+            <img src="${img.dataUrl}" alt="${esc(img.name)}" title="${esc(img.name)}" onclick="openLightbox('${img.dataUrl.replace(/'/g,"\\'")}')">
+            <div class="doc-img-caption">${esc(img.name)}</div>
+          </div>`).join('')}
+      </div>
+    </div>` : ''}
+  </div>
+</div>`;
+
+  // Set back button
+  document.getElementById('version-back-btn').onclick = () => openArticle(articleId);
+
+  // Switch to version view
+  ['list','detail','add','edit'].forEach(v => {
+    const el = document.getElementById('view-' + v);
+    if (el) el.style.display = 'none';
+  });
+  document.getElementById('view-version').style.display = 'block';
+
+  const addrEl = document.getElementById('addressbar-path');
+  if (addrEl) addrEl.textContent = `ltrint://LTR-TRM-009/database/objects/${articleId}/versions/${vNum}`;
+  setStatus(`Архивная версия v${vNum} — запись ${articleId}`);
+}
+
+function fmtDateTime(val) {
+  if (!val) return '—';
+  return val;
+}
+
+
+
+function submitArticle() {
+  const id          = document.getElementById('f-id').value.trim()          || genId();
+  const title       = document.getElementById('f-title').value.trim();
+  const cls         = document.getElementById('f-class').value;
+  const status      = document.getElementById('f-status').value;
+  const division    = document.getElementById('f-division').value.trim();
+  const location    = document.getElementById('f-location').value.trim();
+  const researcher  = document.getElementById('f-researcher').value.trim();
+  const containment = document.getElementById('f-containment').value.trim();
+  const description = document.getElementById('f-description').value.trim();
+  const addendum    = document.getElementById('f-addendum').value.trim();
+  const dateRaw     = document.getElementById('f-date').value.trim();
+
+  if (!title)       { toast('Ошибка: поле «Название» обязательно для заполнения.'); return; }
+  if (!description) { toast('Ошибка: поле «Описание» обязательно для заполнения.'); return; }
+  if (!containment) { toast('Ошибка: поле «Процедуры сдерживания» обязательно.'); return; }
+  if (!dateRaw)     { toast('Ошибка: поле «Дата регистрации» обязательно.'); return; }
+
+  const articles = get();
+  if (articles.find(a => a.id === id)) { toast('Ошибка: запись с таким номером уже существует в базе.'); return; }
+
+  const mediaRaw = document.getElementById('f-media').value.trim();
+  const media = mediaRaw ? mediaRaw.split(',').map(s => s.trim()).filter(Boolean) : [];
+  const article = { id, title, cls, status, division, location, researcher, containment, description, addendum, media, date: dateRaw };
+  articles.push(article);
+  save(articles);
+
+  ['f-id','f-title','f-division','f-location','f-researcher','f-containment','f-description','f-addendum','f-date','f-media'].forEach(fid => {
+    const el = document.getElementById(fid);
+    if (el) el.value = '';
+  });
+
+  toast(`Запись подана. Рег. номер: ${article.id}`);
+  openArticle(article.id);
+}
+
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._to);
+  t._to = setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// Seed
+
+// Login
+const LOGIN_PASS = 'Po24Z2242';
+let loginAttempts = 0;
+
+function loginClock() {
+  const s = new Date().toLocaleString('ru-RU', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit' });
+  const el = document.getElementById('login-clock');
+  if (el) el.textContent = s;
+}
+setInterval(loginClock, 1000); loginClock();
+
+function doLogin() {
+  const pass  = document.getElementById('login-pass').value;
+  const errEl = document.getElementById('login-error');
+  if (pass === LOGIN_PASS) {
+    document.getElementById('login-screen').style.display = 'none';
+    startBoot();
+  } else {
+    loginAttempts++;
+    errEl.style.display = 'block';
+    errEl.textContent = loginAttempts >= 3
+      ? `Превышено число попыток. Инцидент передан в Отдел-7.`
+      : `Неверный пароль. Попытка ${loginAttempts} зарегистрирована.`;
+    document.getElementById('login-pass').value = '';
+    document.getElementById('login-pass').focus();
+  }
+}
+
+// ── BOOT ANIMATION ──
+function startBoot() {
+  const bs = document.getElementById('boot-screen');
+  bs.style.display = 'flex';
+
+  const lines = [
+    { t: 0,    cls: 'dim',  text: '────────────────────────────────────────────────────────────' },
+    { t: 80,   cls: 'head', text: 'LATREIA CORPORATION — BLACKSITE-ALPHA SECURE TERMINAL v4.1' },
+    { t: 160,  cls: 'dim',  text: '────────────────────────────────────────────────────────────' },
+    { t: 280,  cls: 'ok',   text: '' },
+    { t: 360,  cls: 'ok',   text: 'BIOS v2.40.02  Copyright (C) LATREIA Corp.  All rights reserved.' },
+    { t: 440,  cls: 'ok',   text: 'CPU: LTR-x64 @ 3.40GHz    RAM: 8192MB    NODE: LTR-TRM-009' },
+    { t: 600,  cls: 'ok',   text: '' },
+    { t: 680,  cls: 'ok',   text: 'Initializing subsystems...' },
+    { t: 820,  cls: 'good', text: '  [OK]  AES-256 cryptographic module loaded' },
+    { t: 940,  cls: 'good', text: '  [OK]  Authentication protocol verified' },
+    { t: 1060, cls: 'good', text: '  [OK]  Access log: write stream active' },
+    { t: 1180, cls: 'ok',   text: '  [..]  Loading data.json from repository...' },
+    { t: 1340, cls: 'good', text: '  [OK]  data.json loaded from repository' },
+    { t: 1500, cls: 'ok',   text: '' },
+    { t: 1560, cls: 'ok',   text: 'Loading ARCHIVE-DB module v4.1.2...' },
+    { t: 1720, cls: 'good', text: '  [OK]  Record index loaded' },
+    { t: 1840, cls: 'good', text: '  [OK]  Clearance level 4 confirmed' },
+    { t: 1960, cls: 'good', text: '  [OK]  Interface ready' },
+    { t: 2080, cls: 'ok',   text: '' },
+    { t: 2140, cls: 'head', text: 'Welcome, LTR\\a.operator' },
+  ];
+
+  const log = document.getElementById('boot-log');
+  const bar = document.getElementById('boot-progress-bar-inner');
+  const pct = document.getElementById('boot-progress-pct');
+  const lbl = document.getElementById('boot-progress-label');
+  log.innerHTML = '';
+
+  const totalTime = 2200;
+  const startTime = Date.now();
+
+  lines.forEach(l => {
+    setTimeout(() => {
+      const div = document.createElement('div');
+      div.className = 'boot-line ' + l.cls;
+      div.textContent = l.text;
+      log.appendChild(div);
+      while (log.children.length > 22) log.removeChild(log.firstChild);
+    }, l.t);
+  });
+
+  const barInterval = setInterval(() => {
+    const elapsed = Date.now() - startTime;
+    const p = Math.min(95, Math.round((elapsed / totalTime) * 95));
+    bar.style.width = p + '%';
+    pct.textContent = p + '%';
+    lbl.textContent = p < 30 ? 'Initializing subsystems...'
+                    : p < 60 ? 'Loading ARCHIVE-DB module...'
+                    : p < 85 ? 'Syncing data...'
+                    :          'Starting interface...';
+  }, 50);
+
+  setTimeout(async () => {
+    clearInterval(barInterval);
+
+    // loading...
+    const remote = await fetchFromFile();
+    if (remote) {
+      saveLocal(remote);
+    }
+    // else: use whatever is in localStorage
+
+    bar.style.transition = 'width 0.3s linear';
+    bar.style.width = '100%';
+    pct.textContent = '100%';
+    lbl.textContent = 'Done.';
+
+    setTimeout(() => {
+      bs.style.display = 'none';
+      document.getElementById('app').style.display = 'flex';
+      renderList();
+    }, 400);
+  }, 2500);
+}
+
+
+// Focus password field on load
+window.addEventListener('load', () => {
+  const p = document.getElementById('login-pass');
+  if (p) p.focus();
+});
+
+function renderMediaItem(fname) {
+  const f = esc(fname);
+  const ext = fname.split('.').pop().toLowerCase();
+  const isVideo = ['mp4','webm','ogg','mov'].includes(ext);
+  const src = 'assets/' + f;
+  if (isVideo) {
+    return `<div class="doc-img-item">
+      <video src="${src}" controls style="max-width:280px;max-height:180px;border:1px solid #888;display:block;background:#000;" title="${f}"></video>
+      <div class="doc-img-caption">${f}</div>
+    </div>`;
+  }
+  return `<div class="doc-img-item">
+    <img src="${src}" alt="${f}" title="${f}" onclick="openLightbox('${src}')" style="max-width:200px;max-height:150px;border:1px solid #888;cursor:pointer;display:block;">
+    <div class="doc-img-caption">${f}</div>
+  </div>`;
+}
+
+// ── EXPORT ──
+function openExport(e) {
+  if (e) e.preventDefault();
+  const data = JSON.stringify(get(), null, 2);
+  document.getElementById('export-textarea').value = data;
+  document.getElementById('export-copied').style.display = 'none';
+  document.getElementById('modal-export').classList.add('open');
+}
+
+function copyExport() {
+  const ta = document.getElementById('export-textarea');
+  ta.select();
+  document.execCommand('copy');
+  document.getElementById('export-copied').style.display = 'block';
+}
+
+function downloadExport() {
+  const data = document.getElementById('export-textarea').value;
+  const blob = new Blob([data], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'data.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+  document.getElementById('lightbox-img').src = src;
+  document.getElementById('lightbox').classList.add('open');
+}
+
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+  document.getElementById('lightbox-img').src = '';
+}
+
+// Init — renderList called after boot screen completes
+
+</script>
+</body>
+</html><!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LATREIA — Внутренняя база данных объектов</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 12px;
+  background: #d4d0c8;
+  color: #000;
+}
+
+/* ── LOGIN SCREEN ── */
+#login-screen {
+  position: fixed;
+  inset: 0;
+  background: #000080;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-window {
+  background: #d4d0c8;
+  border-top: 2px solid #fff;
+  border-left: 2px solid #fff;
+  border-right: 2px solid #555;
+  border-bottom: 2px solid #555;
+  width: 340px;
+}
+
+.login-titlebar {
+  background: #000080;
+  color: #fff;
+  padding: 3px 6px;
+  font-size: 12px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  user-select: none;
+}
+
+.login-titlebar-icon {
+  width: 14px;
+  height: 14px;
+  background: #d4d0c8;
+  border: 1px solid #888;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  color: #000;
+  font-weight: bold;
+}
+
+.login-body {
+  padding: 16px 18px 12px;
+}
+
+.login-logo-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #aaa;
+}
+
+.login-logo-row svg {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+}
+
+.login-corp-name {
+  font-family: 'Times New Roman', serif;
+  font-size: 14px;
+  font-weight: bold;
+  color: #000;
+  line-height: 1.2;
+}
+
+.login-corp-sub {
+  font-size: 9px;
+  color: #555;
+  margin-top: 2px;
+}
+
+.login-notice {
+  background: #ffffc0;
+  border: 1px solid #888;
+  padding: 4px 8px;
+  font-size: 10px;
+  color: #333;
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.login-field-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.login-field-row label {
+  font-size: 11px;
+  width: 90px;
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.login-field-row input {
+  flex: 1;
+  border: 1px inset #888;
+  padding: 2px 5px;
+  font-size: 12px;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #fff;
+}
+
+.login-field-row input:focus {
+  outline: 1px solid #316ac5;
+}
+
+#login-error {
+  color: #cc0000;
+  font-size: 10px;
+  margin: 6px 0 0 98px;
+  display: none;
+  min-height: 14px;
+}
+
+.login-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid #aaa;
+}
+
+.login-btn {
+  background: #d4d0c8;
+  border-top: 1px solid #fff;
+  border-left: 1px solid #fff;
+  border-right: 1px solid #555;
+  border-bottom: 1px solid #555;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 11px;
+  padding: 3px 18px;
+  cursor: pointer;
+  min-width: 70px;
+}
+
+.login-btn:active {
+  border-top-color: #555;
+  border-left-color: #555;
+  border-right-color: #fff;
+  border-bottom-color: #fff;
+}
+
+.login-statusbar {
+  background: #d4d0c8;
+  border-top: 1px solid #888;
+  padding: 2px 6px;
+  font-size: 10px;
+  color: #444;
+  display: flex;
+  gap: 12px;
+}
+
+.login-statusbar span { padding-right: 12px; border-right: 1px solid #aaa; }
+.login-statusbar span:last-child { border-right: none; }
+
+a { color: #00008b; text-decoration: underline; cursor: pointer; }
+a:hover { color: #cc0000; }
+
+/* ── OUTER CHROME ── */
+#app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── TOP BAR ── */
+#topbar {
+  background: #000080;
+  color: #fff;
+  padding: 2px 6px;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+#topbar-left { display: flex; align-items: center; gap: 14px; }
+#topbar-right { display: flex; align-items: center; gap: 14px; font-size: 10px; color: #aad; }
+
+#topbar-title {
+  font-weight: bold;
+  font-size: 11px;
+  letter-spacing: 0.03em;
+}
+
+#topbar .sep { color: #668; }
+
+/* ── HEADER ── */
+#header {
+  background: #ece9d8;
+  border-bottom: 2px solid #888;
+  padding: 0;
+}
+
+#header-inner {
+  display: flex;
+  align-items: stretch;
+  border-bottom: 1px solid #aaa;
+}
+
+#logo-area {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  border-right: 1px solid #aaa;
+  background: #fff;
+}
+
+#logo-area img { display: none; }
+
+#corp-badge {
+  width: 38px;
+  height: 38px;
+  border: 2px solid #660000;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+#corp-badge svg { width: 30px; height: 30px; }
+
+#corp-title-block { padding: 0 4px; }
+
+#corp-name {
+  font-size: 15px;
+  font-weight: bold;
+  color: #000;
+  letter-spacing: 0.02em;
+  font-family: 'Times New Roman', serif;
+}
+
+#corp-sub {
+  font-size: 10px;
+  color: #444;
+  margin-top: 1px;
+}
+
+#header-meta {
+  padding: 6px 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  border-right: 1px solid #aaa;
+  font-size: 10px;
+  color: #333;
+  line-height: 1.5;
+}
+
+#header-meta b { color: #000; }
+
+#header-status {
+  margin-left: auto;
+  padding: 6px 14px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.hstat {
+  text-align: center;
+  font-size: 10px;
+  color: #444;
+}
+
+.hstat-n {
+  display: block;
+  font-size: 18px;
+  font-weight: bold;
+  color: #000;
+  line-height: 1;
+  font-family: 'Courier New', monospace;
+}
+
+/* ── MENU BAR ── */
+#menubar {
+  background: #ece9d8;
+  border-bottom: 2px solid #888;
+  display: flex;
+  align-items: stretch;
+  padding: 0 2px;
+}
+
+#menubar button {
+  background: none;
+  border: 1px solid transparent;
+  border-bottom: none;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 12px;
+  color: #000;
+  padding: 3px 10px;
+  cursor: pointer;
+  margin-top: 2px;
+  position: relative;
+  top: 1px;
+}
+
+#menubar button:hover {
+  background: #fff;
+  border-color: #888;
+  border-bottom-color: #fff;
+}
+
+#menubar button.active {
+  background: #fff;
+  border-color: #888;
+  border-bottom-color: #fff;
+  font-weight: bold;
+}
+
+#menubar-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  padding-right: 8px;
+  font-size: 10px;
+  color: #660000;
+  font-weight: bold;
+}
+
+/* ── ADDRESS BAR ── */
+#addressbar {
+  background: #fff;
+  border-bottom: 1px solid #999;
+  padding: 2px 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+}
+
+#addressbar label { color: #444; white-space: nowrap; }
+
+#addressbar-path {
+  flex: 1;
+  border: 1px inset #999;
+  background: #fff;
+  padding: 1px 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  color: #000;
+}
+
+/* ── LAYOUT ── */
+#layout {
+  display: flex;
+  flex: 1;
+  align-items: flex-start;
+}
+
+/* ── SIDEBAR ── */
+#sidebar {
+  width: 190px;
+  flex-shrink: 0;
+  background: #ece9d8;
+  border-right: 2px solid #888;
+  min-height: 100%;
+  padding: 0;
+}
+
+.sb-group { border-bottom: 1px solid #aaa; }
+
+.sb-group-title {
+  background: #d4d0c8;
+  border-bottom: 1px solid #aaa;
+  padding: 3px 8px;
+  font-size: 10px;
+  font-weight: bold;
+  color: #333;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.sb-item {
+  display: flex;
+  align-items: center;
+  padding: 4px 8px 4px 12px;
+  cursor: pointer;
+  font-size: 11px;
+  color: #000;
+  border-bottom: 1px solid #d4d0c8;
+  gap: 6px;
+  user-select: none;
+}
+
+.sb-item:hover { background: #316ac5; color: #fff; }
+.sb-item.active { background: #316ac5; color: #fff; font-weight: bold; }
+.sb-item.active .sb-badge { border-color: #fff; color: #fff; }
+
+.sb-badge {
+  font-size: 9px;
+  font-weight: bold;
+  width: 16px;
+  height: 16px;
+  border: 1px solid #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-family: 'Times New Roman', serif;
+}
+
+.sb-badge-b { background: #d4edda; color: #155724; border-color: #5a8f5a; }
+.sb-badge-u { background: #fff3cd; color: #856404; border-color: #9e7c00; }
+.sb-badge-o { background: #ffe0cc; color: #8b3300; border-color: #cc4400; }
+.sb-badge-a { background: #e8d0f0; color: #4a0066; border-color: #7a00aa; }
+.sb-badge-all { background: #e0e0e0; color: #333; border-color: #888; font-size: 7px; }
+
+.sb-label { flex: 1; font-size: 11px; }
+.sb-count { font-size: 10px; color: #555; }
+.sb-item:hover .sb-count,
+.sb-item.active .sb-count { color: #cce; }
+
+.sb-stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-top: 1px solid #d4d0c8;
+}
+
+.sb-stat {
+  padding: 5px 8px;
+  border-right: 1px solid #d4d0c8;
+  border-bottom: 1px solid #d4d0c8;
+  text-align: center;
+}
+
+.sb-stat:nth-child(even) { border-right: none; }
+
+.sb-stat-n {
+  display: block;
+  font-family: 'Courier New', monospace;
+  font-size: 16px;
+  font-weight: bold;
+  color: #000;
+  line-height: 1;
+}
+
+.sb-stat-l {
+  display: block;
+  font-size: 9px;
+  color: #555;
+  margin-top: 1px;
+}
+
+.sb-note {
+  padding: 6px 8px;
+  font-size: 10px;
+  color: #660000;
+  line-height: 1.5;
+  border-top: 1px solid #aaa;
+  background: #fff8f8;
+}
+
+.sb-note b { display: block; margin-bottom: 2px; font-size: 10px; }
+
+/* ── MAIN ── */
+#main {
+  flex: 1;
+  background: #fff;
+  min-height: 600px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── TOOLBAR ── */
+#toolbar {
+  background: #ece9d8;
+  border-bottom: 1px solid #999;
+  padding: 3px 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.tb-btn {
+  background: #ece9d8;
+  border: 1px solid #888;
+  border-top-color: #fff;
+  border-left-color: #fff;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 11px;
+  padding: 2px 10px;
+  cursor: pointer;
+  color: #000;
+}
+
+.tb-btn:hover {
+  background: #d4d0c8;
+}
+
+.tb-btn:active, .tb-btn.active-btn {
+  border-top-color: #888;
+  border-left-color: #888;
+  border-bottom-color: #fff;
+  border-right-color: #fff;
+  background: #d4d0c8;
+}
+
+.tb-btn.primary {
+  background: #ece9d8;
+  font-weight: bold;
+}
+
+.tb-sep { width: 1px; height: 18px; background: #999; margin: 0 2px; }
+
+#search-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+}
+
+#search-row label { font-size: 11px; color: #333; }
+
+#search-input {
+  border: 1px inset #888;
+  padding: 1px 4px;
+  font-size: 11px;
+  width: 180px;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* ── CONTENT AREA ── */
+#content {
+  padding: 10px 12px;
+  flex: 1;
+}
+
+/* ── RESULTS BAR ── */
+#results-bar {
+  background: #ece9d8;
+  border: 1px solid #bbb;
+  border-bottom: none;
+  padding: 2px 8px;
+  font-size: 10px;
+  color: #333;
+  display: flex;
+  justify-content: space-between;
+}
+
+/* ── DATA TABLE ── */
+#data-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid #888;
+}
+
+#data-table th {
+  background: #d4d0c8;
+  border: 1px solid #888;
+  padding: 3px 8px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: bold;
+  color: #000;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+}
+
+#data-table th:hover { background: #c0bdb4; }
+
+#data-table td {
+  border: 1px solid #ccc;
+  padding: 2px 8px;
+  font-size: 11px;
+  vertical-align: middle;
+}
+
+#data-table tr { cursor: pointer; }
+
+#data-table tr:nth-child(even) td { background: #f5f5f5; }
+#data-table tr:nth-child(odd)  td { background: #fff; }
+
+#data-table tr:hover td { background: #316ac5 !important; color: #fff; }
+#data-table tr:hover .cls-badge { border-color: #fff; background: transparent; color: #fff; }
+#data-table tr:hover .status-tag { border-color: #aaf; background: transparent; color: #fff; }
+
+.cls-badge {
+  font-size: 9px;
+  font-weight: bold;
+  padding: 0 4px;
+  border: 1px solid;
+  font-family: 'Times New Roman', serif;
+  font-size: 11px;
+}
+
+.cls-b { color: #155724; border-color: #5a8f5a; background: #d4edda; }
+.cls-u { color: #856404; border-color: #9e7c00; background: #fff3cd; }
+.cls-o { color: #8b3300; border-color: #cc4400; background: #ffe0cc; }
+.cls-a { color: #4a0066; border-color: #7a00aa; background: #e8d0f0; }
+
+.status-tag {
+  font-size: 9px;
+  padding: 0 5px;
+  border: 1px solid;
+  white-space: nowrap;
+}
+
+.st-contained { color: #155724; border-color: #5a8f5a; background: #d4edda; }
+.st-active     { color: #856404; border-color: #9e7c00; background: #fff3cd; }
+.st-critical   { color: #8b3300; border-color: #cc4400; background: #ffe0cc; }
+.st-unknown    { color: #4a0066; border-color: #7a00aa; background: #e8d0f0; }
+.st-liquidated { color: #444; border-color: #888; background: #e0e0e0; }
+
+/* ── EMPTY STATE ── */
+#empty-state {
+  padding: 40px;
+  text-align: center;
+  border: 1px solid #ccc;
+  background: #fafafa;
+  color: #555;
+  font-size: 12px;
+}
+
+/* ── DETAIL VIEW ── */
+#view-detail { display: none; }
+
+.detail-top {
+  margin-bottom: 8px;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+/* Document */
+.doc-outer {
+  border: 1px solid #888;
+  background: #fff;
+}
+
+.doc-header-band {
+  background: #d4d0c8;
+  border-bottom: 2px solid #888;
+  padding: 0;
+  display: flex;
+}
+
+.doc-header-left {
+  flex: 1;
+  padding: 10px 16px;
+  border-right: 1px solid #999;
+}
+
+.doc-header-right {
+  width: 130px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  background: #ece9d8;
+}
+
+.doc-grifband {
+  background: #660000;
+  color: #fff;
+  text-align: center;
+  font-size: 10px;
+  font-weight: bold;
+  letter-spacing: 0.12em;
+  padding: 2px 0;
+  border-bottom: 1px solid #440000;
+}
+
+.doc-org {
+  font-size: 9px;
+  color: #555;
+  font-family: 'Courier New', monospace;
+  margin-bottom: 4px;
+}
+
+.doc-title {
+  font-family: 'Times New Roman', serif;
+  font-size: 17px;
+  font-weight: bold;
+  color: #000;
+  line-height: 1.2;
+  margin-bottom: 3px;
+}
+
+.doc-subtitle {
+  font-size: 10px;
+  color: #444;
+}
+
+.doc-class-stamp {
+  width: 60px;
+  height: 60px;
+  border: 2px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Times New Roman', serif;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.dcs-b { color: #155724; border-color: #5a8f5a; background: #d4edda; }
+.dcs-u { color: #7a5a00; border-color: #9e7c00; background: #fff3cd; }
+.dcs-o { color: #8b3300; border-color: #cc4400; background: #ffe0cc; }
+.dcs-a { color: #4a0066; border-color: #7a00aa; background: #e8d0f0; }
+
+.doc-class-label {
+  font-size: 9px;
+  text-align: center;
+  color: #444;
+  line-height: 1.3;
+}
+
+/* Meta table */
+.doc-meta {
+  width: 100%;
+  border-collapse: collapse;
+  border-bottom: 2px solid #888;
+}
+
+.doc-meta td {
+  border: 1px solid #ccc;
+  padding: 3px 10px;
+  font-size: 11px;
+  vertical-align: top;
+}
+
+.doc-meta .ml {
+  font-size: 9px;
+  color: #666;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: block;
+  margin-bottom: 1px;
+}
+
+.doc-meta .mv {
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  color: #000;
+}
+
+/* Doc sections */
+.doc-section { border-bottom: 1px solid #ccc; }
+.doc-section:last-child { border-bottom: none; }
+
+.doc-sec-head {
+  background: #d4d0c8;
+  border-bottom: 1px solid #aaa;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: bold;
+  color: #000;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.doc-sec-num {
+  font-family: 'Times New Roman', serif;
+  color: #660000;
+  font-size: 12px;
+}
+
+.doc-sec-body {
+  padding: 10px 16px;
+  font-size: 12px;
+  line-height: 1.7;
+  color: #000;
+  white-space: pre-wrap;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.doc-sec-body.containment {
+  background: #fff8f8;
+  border-left: 3px solid #cc0000;
+}
+
+/* ── MODALS ── */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 99990;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-overlay.open { display: flex !important; }
+
+.modal-window {
+  background: #d4d0c8;
+  border-top: 2px solid #fff;
+  border-left: 2px solid #fff;
+  border-right: 2px solid #555;
+  border-bottom: 2px solid #555;
+  min-width: 320px;
+  max-width: 420px;
+}
+
+.modal-titlebar {
+  background: #000080;
+  color: #fff;
+  padding: 3px 6px;
+  font-size: 12px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  user-select: none;
+}
+
+.modal-body {
+  padding: 14px 16px 10px;
+}
+
+.modal-body p {
+  font-size: 12px;
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+
+.modal-field-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.modal-field-row label {
+  font-size: 11px;
+  width: 80px;
+  flex-shrink: 0;
+}
+
+.modal-field-row input {
+  flex: 1;
+  border: 1px inset #888;
+  padding: 2px 5px;
+  font-size: 12px;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #fff;
+}
+
+.modal-error {
+  color: #cc0000;
+  font-size: 10px;
+  margin: 4px 0;
+  min-height: 14px;
+  display: none;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  padding: 8px 16px 10px;
+  border-top: 1px solid #aaa;
+  margin-top: 8px;
+}
+
+/* ── DOC ACTION BAR ── */
+.doc-action-bar {
+  background: #ece9d8;
+  border-bottom: 1px solid #aaa;
+  padding: 4px 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.doc-action-bar .tb-btn { font-size: 11px; }
+.doc-action-bar .tb-btn.danger { color: #660000; }
+.version-history {
+  border-top: 2px solid #888;
+  background: #f5f5f5;
+}
+
+.version-history-head {
+  background: #d4d0c8;
+  border-bottom: 1px solid #aaa;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: bold;
+  color: #000;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  user-select: none;
+}
+
+.version-history-head:hover { background: #c8c4bc; }
+
+.version-list { display: none; }
+.version-list.open { display: block; }
+
+.version-row {
+  border-bottom: 1px solid #ddd;
+  padding: 6px 10px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 11px;
+  background: #fff;
+}
+
+.version-row:nth-child(even) { background: #f9f9f9; }
+
+.version-num {
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
+  color: #888;
+  white-space: nowrap;
+  padding-top: 1px;
+  min-width: 60px;
+}
+
+.version-meta {
+  flex: 1;
+  font-size: 10px;
+  color: #555;
+  line-height: 1.5;
+}
+
+.version-meta b { color: #000; }
+
+.version-btn {
+  background: #d4d0c8;
+  border-top: 1px solid #fff;
+  border-left: 1px solid #fff;
+  border-right: 1px solid #555;
+  border-bottom: 1px solid #555;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 10px;
+  padding: 1px 8px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.version-btn:active {
+  border-top-color: #555;
+  border-left-color: #555;
+  border-right-color: #fff;
+  border-bottom-color: #fff;
+}
+
+/* ── EDIT VIEW ── */
+#view-edit { display: none; }
+
+.img-thumb {
+  width: 80px;
+  height: 60px;
+  object-fit: cover;
+  border: 1px solid #888;
+  cursor: pointer;
+}
+
+.img-thumb:hover { border-color: #316ac5; }
+
+.img-remove {
+  position: absolute;
+  top: 0; right: 0;
+  background: #cc0000;
+  color: #fff;
+  border: none;
+  font-size: 9px;
+  padding: 1px 4px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.img-wrap { position: relative; display: inline-block; }
+
+.doc-img-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 16px;
+  border-top: 1px solid #eee;
+}
+
+.doc-img-item { position: relative; }
+
+.doc-img-item img {
+  max-width: 200px;
+  max-height: 150px;
+  border: 1px solid #888;
+  cursor: pointer;
+  display: block;
+}
+
+.doc-img-item img:hover { border-color: #316ac5; }
+
+.doc-img-caption {
+  font-size: 9px;
+  color: #555;
+  margin-top: 2px;
+  font-family: 'Courier New', monospace;
+}
+
+/* Lightbox */
+#lightbox {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  z-index: 99998;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+#lightbox.open { display: flex; }
+
+#lightbox img {
+  max-width: 90vw;
+  max-height: 90vh;
+  border: 2px solid #fff;
+  box-shadow: 0 0 40px rgba(0,0,0,0.8);
+}
+
+/* ── ADD FORM ── */
+#view-add { display: none; }
+
+.form-outer {
+  border: 1px solid #888;
+  background: #fff;
+}
+
+.form-title-band {
+  background: #d4d0c8;
+  border-bottom: 2px solid #888;
+  padding: 5px 12px;
+  font-weight: bold;
+  font-size: 12px;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.form-title-band small {
+  font-size: 10px;
+  font-weight: normal;
+  color: #555;
+  font-family: 'Courier New', monospace;
+}
+
+.form-body { padding: 12px 14px; }
+
+.form-section-title {
+  background: #d4d0c8;
+  border: 1px solid #aaa;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: bold;
+  margin-bottom: 8px;
+  margin-top: 14px;
+  color: #000;
+}
+
+.form-section-title:first-child { margin-top: 0; }
+
+.frow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.frow.triple { grid-template-columns: 1fr 1fr 1fr; }
+.frow.single { grid-template-columns: 1fr; }
+
+.fgroup { display: flex; flex-direction: column; gap: 2px; }
+
+.flabel {
+  font-size: 10px;
+  font-weight: bold;
+  color: #000;
+}
+
+.flabel .req { color: #cc0000; }
+
+.finput,
+.fselect,
+.ftextarea {
+  border: 1px inset #888;
+  padding: 2px 5px;
+  font-size: 12px;
+  font-family: Arial, Helvetica, sans-serif;
+  color: #000;
+  background: #fff;
+  width: 100%;
+}
+
+.finput:focus, .fselect:focus, .ftextarea:focus {
+  outline: 1px solid #316ac5;
+}
+
+.ftextarea {
+  resize: vertical;
+  min-height: 80px;
+  line-height: 1.5;
+}
+
+.form-footer {
+  background: #ece9d8;
+  border-top: 1px solid #aaa;
+  padding: 6px 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.form-footer-note {
+  margin-left: auto;
+  font-size: 10px;
+  color: #555;
+}
+
+/* ── STATUSBAR ── */
+#statusbar {
+  background: #d4d0c8;
+  border-top: 2px solid #888;
+  padding: 2px 8px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 10px;
+  color: #333;
+}
+
+#statusbar .sb-seg {
+  padding-right: 16px;
+  border-right: 1px solid #aaa;
+}
+
+#statusbar .sb-seg:last-child { border-right: none; }
+
+#status-msg { color: #000; }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  background: #ffffc0;
+  border: 1px solid #888;
+  border-top: 2px solid #000080;
+  padding: 8px 14px;
+  font-size: 12px;
+  z-index: 9999;
+  box-shadow: 2px 2px 0 #888;
+  transform: translateY(80px);
+  opacity: 0;
+  transition: all 0.2s;
+  max-width: 300px;
+}
+
+.toast.show { transform: translateY(0); opacity: 1; }
+
+/* ── misc ── */
+.redact { background: #333; color: transparent; padding: 0 2px; }
+
+/* ── BOOT SCREEN ── */
+#boot-screen {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  z-index: 999999;
+  display: none;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 0;
+  font-family: 'Courier New', monospace;
+}
+#boot-log {
+  flex: 1;
+  padding: 18px 22px 10px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+.boot-line {
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre;
+  opacity: 0;
+  animation: boot-appear 0.05s forwards;
+}
+.boot-line.ok   { color: #ccc; }
+.boot-line.good { color: #0f0; }
+.boot-line.warn { color: #ff0; }
+.boot-line.err  { color: #f44; }
+.boot-line.head { color: #fff; font-weight: bold; }
+.boot-line.dim  { color: #444; }
+@keyframes boot-appear { to { opacity: 1; } }
+#boot-progress-wrap {
+  background: #111;
+  border-top: 1px solid #333;
+  padding: 10px 22px 14px;
+}
+#boot-progress-label {
+  font-size: 11px;
+  color: #555;
+  font-family: 'Courier New', monospace;
+  margin-bottom: 5px;
+}
+#boot-progress-bar-outer {
+  height: 16px;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  position: relative;
+  overflow: hidden;
+}
+#boot-progress-bar-inner {
+  height: 100%;
+  width: 0%;
+  background: #0055cc;
+  transition: width 0.15s linear;
+  position: relative;
+}
+#boot-progress-bar-inner::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(90deg, transparent 0px, transparent 8px, rgba(255,255,255,0.07) 8px, rgba(255,255,255,0.07) 10px);
+}
+#boot-progress-pct {
+  position: absolute;
+  right: 6px;
+  top: 0;
+  line-height: 16px;
+  font-size: 10px;
+  color: #fff;
+  font-family: 'Courier New', monospace;
+  mix-blend-mode: difference;
+}
+
 /* ── SETUP SCREEN ── */
 #setup-screen {
   position: fixed;
