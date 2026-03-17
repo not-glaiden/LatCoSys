@@ -1322,42 +1322,30 @@ a:hover { color: #cc0000; }
   </div>
 </div>
 
-<!-- SETUP SCREEN — GitHub sync config -->
+<!-- SETUP SCREEN — write token config -->
 <div id="setup-screen">
   <div class="setup-window">
-    <div class="setup-titlebar">⚙ Data Sync Configuration — GitHub</div>
+    <div class="setup-titlebar">⚙ Write Access Configuration</div>
     <div class="setup-body">
-      <p><b>The site stores data in <code>data.json</code> in your GitHub repository.</b><br>
-      Changes are written directly via the GitHub API.</p>
+      <p>The site <b>reads</b> data automatically from <code>data.json</code> — no setup needed.<br>
+      To <b>add, edit or delete</b> records, a GitHub write token is required.</p>
       <p>1. Go to <a href="https://github.com/settings/tokens/new" target="_blank">github.com/settings/tokens/new</a><br>
-         2. Create a token with <b>repo</b> scope → copy it<br>
-         3. Fill in your repository details below
+         2. Select <b>repo</b> scope → generate token → copy it<br>
+         3. Paste it below. Owner and repo are auto-detected from the URL.
       </p>
-      <div class="frow triple">
+      <div id="setup-detected" style="font-size:10px;font-family:'Courier New',monospace;color:#555;margin-bottom:8px;padding:3px 6px;background:#e8e8e8;border:1px solid #bbb;"></div>
+      <div class="frow single">
         <div class="fgroup">
-          <label class="flabel">GitHub Username</label>
-          <input class="finput" id="setup-owner" style="font-family:'Courier New',monospace;font-size:10px;">
-        </div>
-        <div class="fgroup">
-          <label class="flabel">Repository Name</label>
-          <input class="finput" id="setup-repo" style="font-family:'Courier New',monospace;font-size:10px;">
-        </div>
-        <div class="fgroup">
-          <label class="flabel">Branch</label>
-          <input class="finput" id="setup-branch" value="main" style="font-family:'Courier New',monospace;font-size:10px;">
-        </div>
-      </div>
-      <div class="frow" style="margin-top:8px;">
-        <div class="fgroup">
-          <label class="flabel">Personal Access Token</label>
+          <label class="flabel">Personal Access Token (repo scope)</label>
           <input class="finput" id="setup-token" type="password" style="font-family:'Courier New',monospace;font-size:10px;">
         </div>
       </div>
       <div id="setup-status" class="sync-bar"></div>
     </div>
     <div class="form-footer" style="margin-top:8px;">
-      <button class="tb-btn primary" onclick="saveSetup()">Connect</button>
-      <button class="tb-btn" onclick="skipSetup()">Skip (local only)</button>
+      <button class="tb-btn primary" onclick="saveSetup()">Save Token</button>
+      <button class="tb-btn" onclick="clearToken()" style="color:#660000;">Remove Token</button>
+      <button class="tb-btn" onclick="closeSetup()">Close</button>
     </div>
   </div>
 </div>
@@ -1842,7 +1830,9 @@ a:hover { color: #cc0000; }
 
 <script>
 // ══════════════════════════════════════════════
-// STORAGE & SYNC — GitHub API → data.json
+// STORAGE & SYNC — data.json in repo
+// Read: plain fetch (no token needed)
+// Write: GitHub API (token needed)
 // ══════════════════════════════════════════════
 const STORE      = 'latreia_v3';
 const CFG_KEY    = 'latreia_cfg';
@@ -1855,60 +1845,74 @@ function getCfg() {
 }
 function saveCfg(c) { localStorage.setItem(CFG_KEY, JSON.stringify(c)); }
 
+// Auto-detect owner/repo from GitHub Pages URL
+// e.g. https://username.github.io/reponame/ → { owner: 'username', repo: 'reponame' }
+function detectGitHub() {
+  const host = location.hostname; // e.g. username.github.io
+  const path = location.pathname; // e.g. /reponame/
+  if (!host.endsWith('.github.io')) return null;
+  const owner = host.replace('.github.io', '');
+  const parts = path.split('/').filter(Boolean);
+  const repo  = parts[0] || '';
+  return repo ? { owner, repo } : null;
+}
+
 // Local read/write
 const get       = () => { try { return JSON.parse(localStorage.getItem(STORE)) || []; } catch { return []; } };
 const saveLocal = d  => localStorage.setItem(STORE, JSON.stringify(d));
 
-// GitHub API helpers
-function ghHeaders(token) {
-  return { 'Authorization': 'token ' + token, 'Content-Type': 'application/json' };
-}
-
-function ghUrl(cfg) {
-  return `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/data.json?ref=${cfg.branch||'main'}`;
-}
-
-async function fetchFromGitHub() {
-  const cfg = getCfg();
-  if (!cfg.token || !cfg.owner || !cfg.repo) {
-    // fallback: try plain fetch of data.json in same folder
-    try {
-      const r = await fetch('data.json?_=' + Date.now());
-      if (r.ok) { const d = await r.json(); return Array.isArray(d) ? d : null; }
-    } catch {}
-    return null;
-  }
+// READ — plain fetch, no token
+async function fetchFromFile() {
   try {
-    const r = await fetch(ghUrl(cfg), { headers: ghHeaders(cfg.token) });
+    const r = await fetch('data.json?_=' + Date.now());
     if (!r.ok) return null;
-    const j = await r.json();
-    const decoded = JSON.parse(atob(j.content.replace(/\n/g, '')));
-    // cache the SHA for next update
-    saveCfg({ ...cfg, sha: j.sha });
-    return Array.isArray(decoded) ? decoded : null;
+    const d = await r.json();
+    return Array.isArray(d) ? d : null;
   } catch { return null; }
 }
 
+// WRITE — GitHub API, token required
 async function pushToGitHub(data) {
   const cfg = getCfg();
-  if (!cfg.token || !cfg.owner || !cfg.repo) return;
+  if (!cfg.token) { setSyncStatus('notoken'); return; }
+
+  const gh = detectGitHub() || { owner: cfg.owner, repo: cfg.repo };
+  if (!gh.owner || !gh.repo) { setSyncStatus('notoken'); return; }
+
+  const branch = cfg.branch || 'main';
   setSyncStatus('saving');
+
   try {
+    // Get current SHA of data.json
+    let sha = cfg.sha;
+    if (!sha) {
+      const check = await fetch(
+        `https://api.github.com/repos/${gh.owner}/${gh.repo}/contents/data.json?ref=${branch}`,
+        { headers: { 'Authorization': 'token ' + cfg.token } }
+      );
+      if (check.ok) {
+        const j = await check.json();
+        sha = j.sha;
+        saveCfg({ ...cfg, sha });
+      }
+    }
+
     const content = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
     const body = {
-      message: 'Update data.json via LATREIA terminal',
+      message: 'Update data.json',
       content,
-      branch: cfg.branch || 'main',
+      branch,
+      ...(sha ? { sha } : {})
     };
-    if (cfg.sha) body.sha = cfg.sha;
 
     const r = await fetch(
-      `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/data.json`,
-      { method: 'PUT', headers: ghHeaders(cfg.token), body: JSON.stringify(body) }
+      `https://api.github.com/repos/${gh.owner}/${gh.repo}/contents/data.json`,
+      { method: 'PUT', headers: { 'Authorization': 'token ' + cfg.token, 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
     );
+
     if (r.ok) {
       const j = await r.json();
-      saveCfg({ ...cfg, sha: j.content.sha });
+      saveCfg({ ...getCfg(), sha: j.content.sha });
       setSyncStatus('ok');
     } else {
       setSyncStatus('err');
@@ -1927,11 +1931,12 @@ function setSyncStatus(s) {
   const el = document.getElementById('sync-indicator');
   if (!el) return;
   const map = {
-    ok:     { text: '● SYNC OK',      color: '#8f8' },
-    saving: { text: '↑ WRITING...',   color: '#ff8' },
-    err:    { text: '✖ SYNC ERROR',   color: '#f88' },
-    off:    { text: '— LOCAL ONLY',   color: '#aad' },
-    loading:{ text: '↓ LOADING...',   color: '#8cf' },
+    ok:      { text: '● SYNC OK',       color: '#8f8' },
+    saving:  { text: '↑ WRITING...',    color: '#ff8' },
+    err:     { text: '✖ SYNC ERROR',    color: '#f88' },
+    notoken: { text: '— READ ONLY',     color: '#fa8' },
+    off:     { text: '— LOCAL',         color: '#aad' },
+    loading: { text: '↓ LOADING...',    color: '#8cf' },
   };
   const m = map[s] || map.off;
   el.textContent = m.text;
@@ -2583,7 +2588,8 @@ function startBoot() {
   bs.style.display = 'flex';
 
   const cfg   = getCfg();
-  const hasGH = !!(cfg.token && cfg.owner && cfg.repo);
+  const hasGH = !!(cfg.token);
+  const gh    = detectGitHub();
 
   const lines = [
     { t: 0,    cls: 'dim',  text: '────────────────────────────────────────────────────────────' },
@@ -2597,11 +2603,11 @@ function startBoot() {
     { t: 820,  cls: 'good', text: '  [OK]  AES-256 cryptographic module loaded' },
     { t: 940,  cls: 'good', text: '  [OK]  Authentication protocol verified' },
     { t: 1060, cls: 'good', text: '  [OK]  Access log: write stream active' },
-    { t: 1180, cls: 'good', text: '  [OK]  Object database: connecting...' },
+    { t: 1180, cls: 'ok',   text: '  [..]  Loading data.json from repository...' },
     { t: 1340, cls: hasGH ? 'good' : 'warn',
                text: hasGH
-                 ? `  [OK]  GitHub Sync: connected to ${cfg.owner}/${cfg.repo} — loading data.json...`
-                 : '  [!!]  GitHub Sync: not configured — using local storage' },
+                 ? `  [OK]  Write token configured — full access enabled`
+                 : '  [!!]  No write token — read-only mode' },
     { t: 1500, cls: 'ok',   text: '' },
     { t: 1560, cls: 'ok',   text: 'Loading ARCHIVE-DB module v4.1.2...' },
     { t: 1720, cls: 'good', text: '  [OK]  Record index loaded' },
@@ -2645,12 +2651,12 @@ function startBoot() {
     clearInterval(barInterval);
 
     setSyncStatus('loading');
-    const remote = await fetchFromGitHub();
+    const remote = await fetchFromFile();
     if (remote) {
       saveLocal(remote);
-      setSyncStatus(hasGH ? 'ok' : 'off');
+      setSyncStatus(hasGH ? 'ok' : 'notoken');
     } else {
-      setSyncStatus(hasGH ? 'err' : 'off');
+      setSyncStatus(hasGH ? 'notoken' : 'off');
     }
 
     bar.style.transition = 'width 0.3s linear';
@@ -2670,11 +2676,17 @@ function startBoot() {
 function openSetup(e) {
   if (e) e.preventDefault();
   const cfg = getCfg();
-  document.getElementById('setup-owner').value  = cfg.owner  || '';
-  document.getElementById('setup-repo').value   = cfg.repo   || '';
-  document.getElementById('setup-branch').value = cfg.branch || 'main';
-  document.getElementById('setup-token').value  = cfg.token  || '';
+  const gh  = detectGitHub();
+  document.getElementById('setup-token').value = cfg.token || '';
   document.getElementById('setup-status').style.display = 'none';
+  const det = document.getElementById('setup-detected');
+  if (gh) {
+    det.textContent = `Detected: ${gh.owner}/${gh.repo}  branch: ${cfg.branch||'main'}`;
+    det.style.display = 'block';
+  } else {
+    det.textContent = 'Note: running locally — auto-detection unavailable. Token will be saved for manual use.';
+    det.style.display = 'block';
+  }
   document.getElementById('setup-screen').style.display = 'flex';
 }
 
@@ -2682,66 +2694,77 @@ function closeSetup() {
   document.getElementById('setup-screen').style.display = 'none';
 }
 
-function skipSetup() {
-  saveCfg({});
-  setSyncStatus('off');
+function skipSetup() { closeSetup(); }
+
+function clearToken() {
+  saveCfg({ ...getCfg(), token: '', sha: '' });
+  setSyncStatus('notoken');
   closeSetup();
+  toast('Write token removed. Site is now read-only.');
 }
 
 async function saveSetup() {
-  const owner   = document.getElementById('setup-owner').value.trim();
-  const repo    = document.getElementById('setup-repo').value.trim();
-  const branch  = document.getElementById('setup-branch').value.trim() || 'main';
-  const token   = document.getElementById('setup-token').value.trim();
+  const token    = document.getElementById('setup-token').value.trim();
   const statusEl = document.getElementById('setup-status');
+  const gh       = detectGitHub() || {};
 
-  if (!owner || !repo || !token) {
+  if (!token) {
     statusEl.className = 'sync-bar sync-err';
-    statusEl.textContent = 'Error: all fields are required.';
+    statusEl.textContent = 'Error: token field is empty.';
     statusEl.style.display = 'block';
     return;
   }
 
   statusEl.className = 'sync-bar sync-info';
-  statusEl.textContent = 'Testing connection...';
+  statusEl.textContent = 'Verifying token...';
   statusEl.style.display = 'block';
 
   try {
-    // Try to read existing data.json
-    const r = await fetch(
-      `https://api.github.com/repos/${owner}/${repo}/contents/data.json?ref=${branch}`,
-      { headers: { 'Authorization': 'token ' + token } }
-    );
+    // Verify token works by hitting user API
+    const r = await fetch('https://api.github.com/user', {
+      headers: { 'Authorization': 'token ' + token }
+    });
 
-    if (r.status === 404) {
-      // File doesn't exist yet — create it with current local data
-      saveCfg({ owner, repo, branch, token });
-      await pushToGitHub(get());
-      statusEl.className = 'sync-bar sync-ok';
-      statusEl.textContent = '✓ Connected. Created data.json in repo.';
-      setSyncStatus('ok');
-      setTimeout(closeSetup, 1500);
-    } else if (r.ok) {
-      const j = await r.json();
-      const decoded = JSON.parse(atob(j.content.replace(/\n/g, '')));
-      saveCfg({ owner, repo, branch, token, sha: j.sha });
-      if (Array.isArray(decoded) && decoded.length > 0) {
-        saveLocal(decoded);
-        renderList();
-        statusEl.className = 'sync-bar sync-ok';
-        statusEl.textContent = `✓ Connected. Loaded ${decoded.length} records from data.json.`;
-      } else {
+    if (!r.ok) {
+      statusEl.className = 'sync-bar sync-err';
+      statusEl.textContent = `Error ${r.status}: invalid token.`;
+      return;
+    }
+
+    const user = await r.json();
+    const owner = gh.owner || user.login;
+    const repo  = gh.repo  || '';
+    const branch = getCfg().branch || 'main';
+
+    saveCfg({ ...getCfg(), token, owner, repo, branch, sha: '' });
+    setSyncStatus('ok');
+
+    // Try to create data.json if it doesn't exist yet
+    if (owner && repo) {
+      const check = await fetch(
+        `https://api.github.com/repos/${owner}/${repo}/contents/data.json?ref=${branch}`,
+        { headers: { 'Authorization': 'token ' + token } }
+      );
+      if (check.status === 404) {
         await pushToGitHub(get());
         statusEl.className = 'sync-bar sync-ok';
-        statusEl.textContent = '✓ Connected. Pushed local data to repo.';
+        statusEl.textContent = `✓ Token saved. Created data.json in ${owner}/${repo}.`;
+      } else if (check.ok) {
+        const j = await check.json();
+        saveCfg({ ...getCfg(), sha: j.sha });
+        statusEl.className = 'sync-bar sync-ok';
+        statusEl.textContent = `✓ Token verified. Connected to ${owner}/${repo}.`;
+      } else {
+        statusEl.className = 'sync-bar sync-ok';
+        statusEl.textContent = `✓ Token saved (verified as ${user.login}).`;
       }
-      setSyncStatus('ok');
-      setTimeout(closeSetup, 1500);
     } else {
-      statusEl.className = 'sync-bar sync-err';
-      statusEl.textContent = `Error ${r.status}: check your token and repo name.`;
+      statusEl.className = 'sync-bar sync-ok';
+      statusEl.textContent = `✓ Token saved (verified as ${user.login}).`;
     }
-  } catch(e) {
+
+    setTimeout(closeSetup, 1800);
+  } catch {
     statusEl.className = 'sync-bar sync-err';
     statusEl.textContent = 'Network error. Check your connection.';
   }
